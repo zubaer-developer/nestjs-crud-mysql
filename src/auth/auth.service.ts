@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RegisterDto } from './dto/register.dto';
 import { User } from './user.entity';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class RegistrationService {
@@ -12,16 +13,10 @@ export class RegistrationService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<User> {
-    const existingUser = await this.userRepo.findOne({
-      where: [
-        { email: registerDto.email },
-        { username: registerDto.username },
-      ],
-    });
-    if (existingUser) {
-      throw new Error('User with this email or username already exists');
-    }
-    const newUser = this.userRepo.create(registerDto);
+
+    const hashedPassword = await argon2.hash(registerDto.password);
+    const newUser = this.userRepo.create({ ...registerDto, password: hashedPassword });
     return await this.userRepo.save(newUser);
+    
   }
 }
