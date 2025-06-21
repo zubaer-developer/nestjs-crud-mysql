@@ -11,4 +11,17 @@ export class RegistrationController {
   async register(@Body() registerDto: RegisterDto): Promise<User> {
     return this.registrationService.register(registerDto);
   }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.registrationService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.registrationService.resetPassword(token, newPassword);
+  }
 }
