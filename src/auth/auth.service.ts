@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -11,6 +12,7 @@ import * as argon2 from 'argon2';
 import { MailService } from 'src/mail/mail.service';
 import * as crypto from 'crypto';
 import { JwtService } from '@nestjs/jwt/dist/jwt.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -67,6 +69,43 @@ export class AuthService {
         email: user.email,
         username: user.username,
       },
+    };
+  }
+
+  // Changes the user's password after verifying the current password.
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user || !user.password) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordValid = await argon2.verify(
+      user.password,
+      changePasswordDto.currentPassword,
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    if (changePasswordDto.currentPassword === changePasswordDto.newPassword) {
+      throw new BadRequestException(
+        'New password must be different from the current password',
+      );
+    }
+
+    const hashedPassword = await argon2.hash(changePasswordDto.newPassword);
+
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+
+    await this.mailService.sendPasswordChangeNotification(user.email);
+
+    return {
+      message: 'Password has been changed successfully',
     };
   }
 
