@@ -20,6 +20,11 @@ export class User {
 
     @UpdateDateColumn()
     updatedAt: Date;
+    @Column({ nullable: true, type: 'varchar', default: null })
+    resetToken: string | null | undefined;
+
+    @Column({ nullable: true, type: 'timestamp', default: null })
+    resetTokenExpiry: Date | null | undefined;
 
 }
    

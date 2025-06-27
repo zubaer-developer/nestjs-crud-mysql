@@ -1,15 +1,15 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from '../auth/user.entity';
+import { User } from 'src/auth/user.entity';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() user: User) {
-    return this.userService.create(user);
+  @Post('/register')
+  create(@Body() registerDto: RegisterDto): Promise<User> {
+    return this.userService.create(registerDto);
   }
 
   @Get()
@@ -19,7 +19,8 @@ export class UserController {
 
   @Get(':id')
   findOne(@Param('id') id: number) {
-    return this.userService.findOne(id);
+    const user = this.userService.findOne(id);
+    return user;
   }
 
   @Patch(':id')
@@ -29,7 +30,8 @@ export class UserController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.userService.remove(id);
+  async remove(@Param('id') id: number) {
+    await this.userService.remove(id);
+    return { message: `Item with ID ${id} deleted successfully` };
   }
 }
