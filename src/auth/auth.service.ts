@@ -10,6 +10,7 @@ import { User } from './user.entity';
 import * as argon2 from 'argon2';
 import { MailService } from 'src/mail/mail.service';
 import * as crypto from 'crypto';
+import { JwtService } from '@nestjs/jwt/dist/jwt.service';
 
 @Injectable()
 export class AuthService {
@@ -17,13 +18,10 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly mailService: MailService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  /**
-   * Registers a new user.
-   * @param registerDto - The registration data transfer object containing user details.
-   * @returns The newly created user.
-   */
+  // Registers a new user.
   async register(registerDto: RegisterDto): Promise<User> {
     const hashedPassword = await argon2.hash(registerDto.password);
     const newUser = this.userRepository.create({
@@ -38,16 +36,8 @@ export class AuthService {
     return savedUser;
   }
 
-  /**
-   * Logs in a user by verifying their email and password.
-   * @param email - The user's email.
-   * @param password - The user's password.
-   * @returns A success message and user details if login is successful.
-   * @throws UnauthorizedException if the email or password is invalid.
-   */
-
+  // Logs in a user by verifying their email and password.
   async login(email: string, password: string) {
-    // find user by email
     const user = await this.userRepository.findOne({
       where: { email },
     });
@@ -61,9 +51,17 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    // JWT টোকেন তৈরি
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload);
 
     return {
       message: 'Login successful',
+      access_token: accessToken,
       user: {
         id: user.id,
         email: user.email,
@@ -72,12 +70,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Initiates the password reset process by generating a reset token and sending it to the user's email.
-   * @param email - The user's email address.
-   * @returns A message indicating that a password reset link has been sent.
-   * @throws NotFoundException if no user is found with the provided email.
-   */
+  // Initiates the password reset process by generating a reset token and
   async forgotPassword(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
@@ -96,13 +89,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Resets the user's password using the provided reset token and new password.
-   * @param token - The reset token sent to the user's email.
-   * @param newPassword - The new password to set for the user.
-   * @returns A success message indicating that the password has been reset.
-   * @throws NotFoundException if the reset token is invalid or expired.
-   */
+  // Resets the user's password using the provided reset token and new password.
   async resetPassword(token: string, newPassword: string) {
     const user = await this.userRepository.findOne({
       where: { resetToken: token },
