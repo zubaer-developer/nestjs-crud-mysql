@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { User } from './user.entity';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,6 +18,16 @@ export class AuthController {
   @Post('/login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto.email, loginDto.password);
+  }
+
+  // Protected route for changing password
+  @UseGuards(JwtAuthGuard)
+  @Post('/change-password')
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Req() req: any,
+  ) {
+    return this.authService.changePassword(req.user.id, changePasswordDto);
   }
 
   // Protected route
