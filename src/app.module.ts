@@ -7,7 +7,7 @@ import { UploadController } from './upload/upload.controller';
 import { UploadService } from './upload/upload.service';
 import { UploadModule } from './upload/upload.module';
 import { MulterModule } from '@nestjs/platform-express/multer/multer.module';
-import { RegistrationModule } from './auth/auth.module';
+import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailModule } from './mail/mail.module';
 
@@ -32,7 +32,7 @@ import { MailModule } from './mail/mail.module';
     }), 
     UserModule, 
     UploadModule, 
-    RegistrationModule, 
+    AuthModule, 
     MailModule 
   ],
   controllers: [UploadController],
