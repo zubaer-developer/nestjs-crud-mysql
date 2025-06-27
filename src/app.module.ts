@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from './user/user.entity';
+import { User } from './registration/user.entity';
 import { UserModule } from './user/user.module';
 import { UploadController } from './upload/upload.controller';
 import { UploadService } from './upload/upload.service';
 import { UploadModule } from './upload/upload.module';
 import { MulterModule } from '@nestjs/platform-express/multer/multer.module';
+import { RegistrationModule } from './registration/registration.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { MulterModule } from '@nestjs/platform-express/multer/multer.module';
       database: 'nestjs_database',
       entities: [User],
       synchronize: true, // Development only, use migrations in production
-    }), UserModule, UploadModule 
+    }), UserModule, UploadModule, RegistrationModule 
   ],
   controllers: [UploadController],
   providers: [UploadService],
